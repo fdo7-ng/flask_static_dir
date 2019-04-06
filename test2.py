@@ -1,6 +1,6 @@
 #Sample script server files from outside of the project folder
 
-import os
+import os, time
 
 from flask import Flask
 from flask import send_from_directory
@@ -8,6 +8,9 @@ from flask import send_from_directory
 #static_file_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static')
 static_file_dir = "/Users/SBMaru/Downloads"
 app = Flask(__name__)
+
+def file_age(filepath):
+    return time.time() - os.path.getmtime(filepath)
 
 
 @app.route('/dir', methods=['GET'])
@@ -52,5 +55,24 @@ def delete(file):
         print("Not Found creatting file: ", file)
         return "File Not found"
 
+
+# Delete files in defined static directory
+@app.route('/deleteifold/<file>')
+def deleteifold(file):
+    print("/deleteifold  -- Check if file exist:")
+    if os.path.isfile(os.path.join(static_file_dir, file)):
+
+        print("Found file : " , file)
+        ctime = file_age(os.path.join(static_file_dir, file))
+        print("file age: ", ctime)
+        if ctime > 20:
+            print("File is 20 seconds old, delete file")
+            os.remove( os.path.join(static_file_dir, file))
+            return file + " -- File removed"
+        else:
+            return file + " -- File less than 20 second old, skip delete"
+    else:
+        print("Not Found creatting file: ", file)
+        return file + " -- File Not Found"
 
 app.run(host='0.0.0.0',port=8080,debug=True)
